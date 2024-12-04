@@ -21,7 +21,7 @@ function UploadButton(props: Iprops) {
     const [documents, setDocuments] = useState<any[]>([]);
 
     // 折叠面板展开的keys
-    const [activeKeys, setActiveKeys] = useState<string[]>([]);
+    const [_, setActiveKeys] = useState<string[]>([]);
 
     const [fileList, setFileList] = useState<any[]>([]);
 

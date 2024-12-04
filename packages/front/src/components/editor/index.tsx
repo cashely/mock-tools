@@ -50,7 +50,6 @@ interface IProps {
 function Editor(props: IProps) {
     const divRef = useRef<HTMLDivElement | null>(null);
 
-    const editorRef = useRef(null);
     const { value = '', language = 'json'} = props;
     
     const onChange = (value?: string) => {

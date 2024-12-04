@@ -4,7 +4,6 @@ import { message } from 'antd';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
 import Logo from '../../components/common/Logo';
-import UploadButton from '../../components/common/UploadButton';
 import LocaleButton from '../../components/common/LocaleButton';
 import { setTokenToLocalStorage, formFieldValidator } from '../../utils';
 import { loginApi } from './api';

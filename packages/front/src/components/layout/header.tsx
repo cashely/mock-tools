@@ -9,7 +9,7 @@ import CreateUserButton from './CreateUserButton';
 import useStore from '../../store';
 
 function Header() {
-    const { userInfo, updateUserInfo, fetchUserInfo } = useStore(useShallow(({ userInfo, updateUserInfo, fetchUserInfo }) => ({ userInfo, updateUserInfo, fetchUserInfo })))
+    const { userInfo, fetchUserInfo } = useStore(useShallow(({ userInfo, updateUserInfo, fetchUserInfo }) => ({ userInfo, updateUserInfo, fetchUserInfo })))
     // fetchUserInfo()
     const menuItems: any = [
         {

@@ -2,7 +2,6 @@ import { createRoot } from 'react-dom/client'
 import { ConfigProvider } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import 'dayjs/locale/zh-cn';
-import useStore from './store';
 import useTheme, { ThemeProvider } from './hooks/themeContext';
 import App from './pages'
 import './index.css'
