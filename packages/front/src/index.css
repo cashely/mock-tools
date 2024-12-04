@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+}
+
+
+
+
+.ant-tree-treenode.ant-tree-treenode-switcher-open, .ant-tree-treenode.ant-tree-treenode-switcher-close {
+    width: 100%;
+    display: flex;
+}
+.ant-tree-treenode .ant-tree-node-content-wrapper {
+    width: 100%;
+}
+.project-tree span.ant-tree-node-content-wrapper {
+    display: flex;
+    overflow: hidden;
+}
+.project-tree span.ant-tree-title {
+    flex: 1;
+    overflow: hidden;
+}

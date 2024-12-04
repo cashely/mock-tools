@@ -1,0 +1,11 @@
+{
+    "version": 2,
+    "devCommand": "pnpm run dev",
+    "buildCommand": "pnpm run build",
+    "rewrites": [
+        {
+            "source": "/(.*)",
+            "destination": "/packages/front/dist"
+        }
+    ]
+}

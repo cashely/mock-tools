@@ -1,0 +1,13 @@
+{
+    "name": "mock-tools",
+    "description": "Tools for mocking data",
+    "version": "0.0.1",
+    "workspaces": [
+        "packages/*"
+    ],
+    "private": true,
+    "scripts": {
+        "dev": "pnpm --filter @mock-tools/front dev",
+        "build": "pnpm --filter @mock-tools/front build"
+    }
+}

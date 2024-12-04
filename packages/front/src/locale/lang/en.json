@@ -1,0 +1,18 @@
+{
+    "登录": "Sign In",
+    "注册": "Sign Up",
+    "账号": "Account",
+    "密码": "Password",
+    "确认密码": "Confirm Password",
+    "邮箱": "Email",
+    "手机": "Phone",
+    "已有账号,立即登录": "Have an account? Sign in",
+    "没有账号,马上注册": "No account? Sign up",
+    "登录成功": "Login successfully",
+    "密码不能为空": "Password cannot be empty",
+    "账号不能为空": "Account cannot be empty",
+    "邀请码": "Invitation Code",
+    "注册成功,即将返回登录": "Register successfully, will return to login",
+    "立即登录": "Sign In",
+    "邮箱格式不正确": "Email format is incorrect"
+}
