@@ -14,7 +14,20 @@ const CodeRender = (props: { selectedDocument: Record<any, any>}) => {
             // 拼接的规则: 后端访问host + /mock + /项目别名 + /文档路径
             `${import.meta.env.VITE_API_BASE_URI}/mock/${selectedDocument.project.alias}/${selectedDocument.path}`,
             {
-                method: selectedDocument.method === 'all' ? 'get' : selectedDocument.method,
+                method: (() => {
+                    switch (true) {
+                        case ['0', '1'].includes(selectedDocument.method):
+                            return 'GET';
+                        case selectedDocument.method === '2':
+                            return 'POST';
+                        case selectedDocument.method === '3':
+                            return 'PUT';
+                        case selectedDocument.method === '4':
+                            return 'DELETE';
+                        default:
+                            return 'GET';
+                    }
+                })(),
             }
         )
         const data = await result.json();

@@ -85,7 +85,7 @@ function ProjectItem(props: IProps) {
                     onSave={(template) => onSaveProjectTemplate(project.id, { template })}
                 />
                 <Divider type='vertical' />
-                <CreateProjectButton id={project.id} title="编辑项目">
+                <CreateProjectButton id={project.id} title="编辑项目" onOk={props.onOk}>
                     {
                         (setVisible) => {
                             return (

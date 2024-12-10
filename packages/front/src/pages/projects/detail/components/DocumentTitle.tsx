@@ -50,6 +50,24 @@ function DocumentTitle(props: IProps) {
         setLoading(false);
     }
 
+    /**
+     * @name 转换当前文档的请求方式
+     */
+    const transformMethod = (method?: String) => {
+        switch (true) {
+            case ['0'].includes(String(method)):
+                return 'ALL';
+            case String(method) === '2':
+                return 'POST';
+            case String(method) === '3':
+                return 'PUT';
+            case String(method) === '4':
+                return 'DELETE';
+            default:
+                return 'GET';
+        }
+    }
+
     return (
         <>
             {
@@ -67,7 +85,7 @@ function DocumentTitle(props: IProps) {
                     <div
                         className='flex items-center justify-between w-full'
                     >
-                        <span className='rounded p-0.5 bg-green-500 text-white mr-1 leading-none'>{String.prototype.toUpperCase.call(method)}</span>
+                        <span className='rounded p-0.5 bg-green-500 text-white mr-1 leading-none'>{transformMethod(method)}</span>
                         <span className={cs(props.className, 'flex-1')} onDoubleClick={onDoubleClick} onClick={props.onClick}>{title}</span>
                         {
                             hover && (
