@@ -1,12 +1,15 @@
 import axios from "axios";
 import { getTokenFromLocalStorage } from './index';
 import { notification, message } from 'antd';
+import useStore from "../store";
 
 
 
 const request = axios.create();
 
 request.defaults.baseURL = import.meta.env.VITE_API_BASE_URI;
+
+
 
 request.interceptors.request.use((config) => {
     const controller = new AbortController();
@@ -27,7 +30,7 @@ request.interceptors.request.use((config) => {
 
 request.interceptors.response.use((response) => {
     if (response.data.code === 401) {
-        message.error("授权错误,请重新登录!");
+        message.error("未获取到授权信息,请重新登录!");
         // 跳转到登录页
         window.location.href = "/#/login";
         return;
@@ -42,7 +45,7 @@ request.interceptors.response.use((response) => {
     return response.data;
 }, error => {
     if (error.status === 401) {
-        message.error("授权错误,请重新登录!");
+        message.error("未获取到授权信息,请重新登录!");
         // 跳转到登录页
         window.location.href = "/#/login";
         return;

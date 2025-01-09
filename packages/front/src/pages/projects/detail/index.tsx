@@ -1,12 +1,12 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from 'react-router-dom';
 import df from 'd-forest';
 import { getDocumentsApi, getFoldersApi, createDocumentApi, deleteDocumentApi, updateDocumentApi, getDocumentApi } from './api';
 import TreeSilder from "./components/TreeSilder";
 import EmptyEditor from "./components/EmptyEditor";
-import { Button, Input, message, Modal, Space, Checkbox, notification, Spin, Splitter, Select } from "antd";
+import { Button, Input, message, Modal, Space, Checkbox, notification, Splitter, Select, ConfigProvider } from "antd";
 import { AiOutlineSave } from 'react-icons/ai';
-import { isEqual, isEmpty, remove } from 'lodash-es';
+import { isEmpty, remove } from 'lodash-es';
 import { z } from 'zod';
 import Editor from "../../../components/editor";
 import DocumentLogButton from "./components/DocumentLogButton";
@@ -16,8 +16,9 @@ import CodeRender from "../../../components/codeRender";
 import ScheduleButton from "./components/ScheduleButton";
 import { TTreeNode } from "../../..";
 import { editArray } from "../../../utils";
-
 import useStore from "../../../store";
+import isEqual from 'fast-deep-equal';
+import { getCurrentUserApi } from "../../../components/layout/apis";
 
 function ProjectDetail() {
     const { projectId } = useParams<any>();
@@ -28,33 +29,44 @@ function ProjectDetail() {
 
     const [treeData, setTreeData] = useState<TTreeNode[]>([]);
 
-    const [loading, setLoading] = useState(true);
+    /**
+     * @name 编辑器默认的宽度
+     */
+    const [width, setWidth] = useState(600);
 
     const selectedDocument = useStore((state) => state.selectedDocument);
     const setSelectedDocument = useStore((state) => state.setSelectedDocument);
     const fetchDocument = useStore((state) => state.fetchDocument);
+    const fetchUserInfo = useStore((state) => state.fetchUserInfo);
+
+    const closeLoading = useStore((state) => state.closeLoading);
+    const openLoading = useStore((state) => state.openLoading);
 
     /**
      * @name 存储原始的单个文档
      */
-    const documentRef = useRef<Partial<TTreeNode>>({});
+    const [documentRef, setDocumentRef] = useState<Partial<TTreeNode>>({});
 
     const getDocuments = async () => {
+        openLoading();
         const res: any = await getDocumentsApi(projectId);
         const data = res.data;
-        setDocuments(data)
+        setDocuments(data);
+        closeLoading();
     }
 
     const getFolders = async () => {
+        openLoading();
         const res: any = await getFoldersApi(projectId);
         const data = res.data;
-        setFolders(data)
+        setFolders(data);
+        closeLoading();
     }
 
     const getInitFetch = useCallback(async () => {
-        setLoading(true);
+        openLoading();
         await Promise.all([getFolders(), getDocuments()]);
-        setLoading(false);
+        closeLoading();
     }, [projectId])
 
     /**
@@ -62,8 +74,11 @@ function ProjectDetail() {
      */
 
     const getDocument = async (id: string | number) => {
+        openLoading();
         const resData = await fetchDocument(getDocumentApi, id);
-        documentRef.current = resData;
+        // documentRef.current = resData;
+        setDocumentRef(resData);
+        closeLoading();
     }
 
     /**
@@ -136,16 +151,15 @@ function ProjectDetail() {
      * @name 保存文档
      */
     const onHandleSave = async () => {
-
+        openLoading();
         const res: any = await createDocumentApi(selectedDocument);
 
         if (res.code === 200) {
             message.success('保存成功');
             getDocument(res.data.id);
             getInitFetch();
-        } else {
-            message.error(res.message);
         }
+        closeLoading();
     }
 
     /**
@@ -154,33 +168,37 @@ function ProjectDetail() {
 
     const onHandleUpdate = async (document: any) => {
         // 从左侧文档树获取type为new的文档
-        const Schema = z.object({
-            path: z.string().min(1, '路径不能为空'),
-            content: z.string().min(1, '文档内容不能为空').refine(value => {
-                try {
-                    JSON.parse(value);
-                    return true;
-                } catch (err) {
-                    return false;
-                }
-            }, '文档内容格式错误'),
-        })
-        const validataResult = Schema.safeParse(document);
-        // 验证不通过的情况下，不做任何操作
-        if (!validataResult.success) {
-            notification.error({
-                message: '提示',
-                description: validataResult.error.issues.map(v => v.message).join('\br'),
+        try {
+            openLoading();
+            const Schema = z.object({
+                path: z.string().min(1, '路径不能为空'),
+                content: z.string().min(1, '文档内容不能为空').refine(value => {
+                    try {
+                        JSON.parse(value);
+                        return true;
+                    } catch (err) {
+                        return false;
+                    }
+                }, '文档内容格式错误'),
             })
-            return;
+            const validataResult = Schema.safeParse(document);
+            // 验证不通过的情况下，不做任何操作
+            if (!validataResult.success) {
+                notification.error({
+                    message: '提示',
+                    description: validataResult.error.issues.map(v => v.message).join('\br'),
+                })
+                return;
+            }
+            const res: any = await updateDocumentApi(document.id, document);
+            if (res.code === 200) {
+                message.success('保存成功');
+                await Promise.all([getDocument(document.id), getInitFetch()])
+            }
+        } finally {
+            closeLoading();
         }
-        const res: any = await updateDocumentApi(document.id, document);
-        if (res.code === 200) {
-            message.success('保存成功');
-            await Promise.all([getDocument(document.id), getInitFetch()])
-        } else {
-            message.error(res.message);
-        }
+        
     }
 
     /**
@@ -205,14 +223,21 @@ function ProjectDetail() {
      */
 
     const onHandleDeleteDocument = async (id: string | number) => {
+        openLoading();
         const res: any = await deleteDocumentApi(id);
 
         if (res.code === 200) {
             message.success('删除成功');
             getInitFetch();
-        } else {
-            message.error(res.message);
+            fetchUserInfo(getCurrentUserApi);
+            // 如果删除的是当前文档，则清空选择的文档内容
+            if (id === selectedDocument.id) {
+                setSelectedDocument(state => {
+                    state.selectedDocument = {}
+                })
+            }
         }
+        closeLoading();
     }
 
     /**
@@ -223,6 +248,7 @@ function ProjectDetail() {
             state.selectedDocument[key] = value;
         })
     }
+
 
     /**
      * @name 切换文档
@@ -235,8 +261,7 @@ function ProjectDetail() {
         }
         // 切换文档时检查是否有新节点没有保存
         const newTypeNode = df.findNode(treeData, (dataItem: any) => dataItem.nodeType === 'new');
-        // const isChange = selectedDcoument
-        const isDiffDocument = !isEqual(selectedDocument, documentRef.current);
+        const isDiffDocument = !isEqual(selectedDocument, documentRef);
         if (newTypeNode) {
             return Modal.confirm({
                 title: '提示',
@@ -264,41 +289,46 @@ function ProjectDetail() {
 
     return (
         <div className="flex w-full overflow-hidden">
-            <Spin spinning={loading} className="h-full overflow-hidden" wrapperClassName="h-full flex">
-                <div className="border-r overflow-hidden h-full">
-                    <TreeSilder
-                        data={treeData}
-                        projectId={projectId}
-                        selectedDcoument={selectedDocument}
-                        onChange={onHandleTreeDataChange}
-                        onOk={getInitFetch}
-                        onDocumentSelect={onHandleSelectDocument}
-                        onDeleteDocument={onHandleDeleteDocument}
-                        onDetailDocument={getDocument}
-                        onFindTreeDataNewTypeNodeAndDelete={findTreeDataNewTypeNodeAndDelete}
-                        onHandleUpdate={onHandleUpdate}
-                    />
-                </div>
-            </Spin>
+            <div className="border-r overflow-hidden h-full">
+                <TreeSilder
+                    data={treeData}
+                    projectId={projectId}
+                    selectedDcoument={selectedDocument}
+                    onChange={onHandleTreeDataChange}
+                    onOk={getInitFetch}
+                    onDocumentSelect={onHandleSelectDocument}
+                    onDeleteDocument={onHandleDeleteDocument}
+                    onDetailDocument={getDocument}
+                    onFindTreeDataNewTypeNodeAndDelete={findTreeDataNewTypeNodeAndDelete}
+                    onHandleUpdate={onHandleUpdate}
+                />
+            </div>
             <div className="flex-1 flex flex-col overflow-hidden">
                 {
                     isEmpty(selectedDocument)
                         ?
-                        (<EmptyEditor loading={loading} />)
+                        (<EmptyEditor />)
                         :
                         (
                             <>
                                 <div className="flex gap-10 p-2 justify-between items-center border-b z-10">
                                     <div className="flex-1">
                                         <Space>
-                                            <Select defaultValue={1} dropdownStyle={{ width: 'auto' }} suffixIcon={null} variant="borderless" value={selectedDocument.protocal} className="bg-gray-300">
-                                                <Select.Option value={1}>
-                                                    HTTP://
-                                                </Select.Option>
-                                                <Select.Option value={2}>
-                                                    WSS://
-                                                </Select.Option>
-                                            </Select>
+                                            <ConfigProvider
+                                                theme={{
+                                                    components: {
+                                                    }
+                                                }}
+                                            >
+                                                <Select defaultValue={1} dropdownStyle={{ width: 'auto' }} suffixIcon={null} variant="borderless" value={selectedDocument.protocal} className="h-[20px]" disabled style={{ backgroundColor: 'transparent', color: 'white' }}>
+                                                    <Select.Option value={1}>
+                                                        HTTP://
+                                                    </Select.Option>
+                                                    <Select.Option value={2}>
+                                                        WSS://
+                                                    </Select.Option>
+                                                </Select>
+                                            </ConfigProvider>
                                             <Input
                                                 size="small"
                                                 placeholder="请输入文档路径"
@@ -390,23 +420,24 @@ function ProjectDetail() {
                                         {
                                             selectedDocument.nodeType === 'new'
                                                 ? (
-                                                    <Button type="primary" icon={<AiOutlineSave />} onClick={onHandleSave}>保存</Button>
+                                                    <Button type="primary" icon={<AiOutlineSave />} disabled={isEqual(selectedDocument, documentRef)} onClick={onHandleSave}>保存</Button>
                                                 )
                                                 : (
-                                                    <Button type="primary" icon={<AiOutlineSave />} onClick={() => onHandleUpdate(selectedDocument)}>保存</Button>
+                                                    <Button type="primary" icon={<AiOutlineSave />} disabled={isEqual(selectedDocument, documentRef)} onClick={() => onHandleUpdate(selectedDocument)}>保存</Button>
                                                 )
                                         }
                                     </div>
                                 </div>
                                 <div className="flex-1 overflow-hidden shadow">
-                                    <Splitter className="flex">
-                                        <Splitter.Panel resizable={false} defaultSize="60%">
+                                    <Splitter className="flex" onResize={([leftSize]) => setWidth(leftSize)}>
+                                        <Splitter.Panel resizable={true} defaultSize="600">
                                             <Editor
+                                                width={width}
                                                 value={selectedDocument.content}
                                                 onChange={code => onChangeSelectDocument('content', code)}
                                             />
                                         </Splitter.Panel>
-                                        <Splitter.Panel className="h-full">
+                                        <Splitter.Panel className="h-full" min={200}>
                                             <CodeRender selectedDocument={selectedDocument} />
                                         </Splitter.Panel>
                                     </Splitter>

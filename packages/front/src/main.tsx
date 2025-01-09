@@ -1,14 +1,16 @@
 import { createRoot } from 'react-dom/client'
-import { ConfigProvider } from 'antd';
+import { ConfigProvider, Spin } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import 'dayjs/locale/zh-cn';
 import useTheme, { ThemeProvider } from './hooks/themeContext';
 import App from './pages'
 import './index.css'
 import './locale';
+import useStore from './store';
 
 const AppContainer = () => {
   const { theme } = useTheme();
+  const loading = useStore((state) => state.loading);
   return (
       <ConfigProvider locale={zhCN} theme={
         {
@@ -24,6 +26,9 @@ const AppContainer = () => {
         }
       }>
         <App />
+        <Spin spinning={loading} percent={0} fullscreen>
+          
+        </Spin>
       </ConfigProvider>
   )
 }

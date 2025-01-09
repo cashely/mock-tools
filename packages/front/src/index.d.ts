@@ -1,5 +1,9 @@
 import type { TreeDataNode } from 'antd';
 
+declare module 'objutil' {
+    function isEqual(obj1: any, obj2: any): boolean;
+}
+
 declare module '*.json' {
     const value: any;
     export default value;

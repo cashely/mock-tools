@@ -12,6 +12,7 @@ import userInfoSlice, { type UserInfoStore } from './userInfoSlice';
 import projectsSlice from './projectsSlice';
 import foldersSlice from './foldersSlice';
 import documentSlice from './documentSlice';
+import loadingSlice, { LoadingStore } from './loadingSlice';
 
 type Store =
       UserInfoStore
@@ -20,13 +21,15 @@ type Store =
     & FoldersState
     & FoldersActions
     & DocumentState
-    & DocumentActions;
+    & DocumentActions
+    & LoadingStore;
 
 const useStore = create<Store, any>(immer((set, ...a) => ({
     ...userInfoSlice(set, ...a),
     ...documentSlice(set,...a),
     ...projectsSlice(set,...a),
     ...foldersSlice(set,...a),
+    ...loadingSlice(set,...a),
 })));
 
 export default useStore;

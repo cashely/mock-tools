@@ -7,13 +7,13 @@ import Logo from '../../components/common/Logo';
 import LocaleButton from '../../components/common/LocaleButton';
 import { setTokenToLocalStorage, formFieldValidator } from '../../utils';
 import { loginApi } from './api';
+import useStore from '../../store';
 
 
 
 function Login() {
-
-    
-
+    const closeLoading = useStore((state) => state.closeLoading);
+    const openLoading = useStore((state) => state.openLoading);
     const { t } = useTranslation();
 
     const rules = {
@@ -37,6 +37,7 @@ function Login() {
 
     const onSubmit = async () => {
         try {
+            openLoading();
             const values = await form.validateFields();
             const res = await loginApi<string | undefined>(values);
             if (res.code === 200) {
@@ -48,6 +49,8 @@ function Login() {
             }
         } catch (error) {
             console.log(error);
+        } finally {
+            closeLoading();
         }
     }
     return (

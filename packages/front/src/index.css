@@ -23,3 +23,12 @@
     flex: 1;
     overflow: hidden;
 }
+.project-tree .ant-tree-switcher {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.project-tree .ant-tree-switcher:before {
+    background-color: transparent;
+    display: none;
+}

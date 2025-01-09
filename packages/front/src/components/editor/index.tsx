@@ -1,7 +1,6 @@
 import MonocoEditor, { useMonaco } from '@monaco-editor/react';
 import { useRef, useEffect, useCallback } from 'react';
 import { loader } from '@monaco-editor/react';
-import actions from './actions.json';
 
 import * as monaco from 'monaco-editor';
 import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
@@ -9,6 +8,8 @@ import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
 import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
 import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
 import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
+
+import {  setupContextMenuFeature } from './subMenu.tsx';
 
 self.MonacoEnvironment = {
   getWorker(_, label) {
@@ -26,6 +27,21 @@ self.MonacoEnvironment = {
     }
     return new editorWorker();
   },
+  getWorkerUrl: function (moduleId, label) {
+		if (label === 'json') {
+			return './json.worker.bundle.js';
+		}
+		if (label === 'css' || label === 'scss' || label === 'less') {
+			return './css.worker.bundle.js';
+		}
+		if (label === 'html' || label === 'handlebars' || label === 'razor') {
+			return './html.worker.bundle.js';
+		}
+		if (label === 'typescript' || label === 'javascript') {
+			return './ts.worker.bundle.js';
+		}
+		return './editor.worker.bundle.js';
+	}
 };
 
 loader.config({
@@ -44,13 +60,14 @@ loader.config({
 interface IProps {
     value?: string;
     language?: string;
+    width?: number,
     onChange?: (value?: string) => any;
 }
 
 function Editor(props: IProps) {
     const divRef = useRef<HTMLDivElement | null>(null);
 
-    const { value = '', language = 'json'} = props;
+    const { value = '', language = 'json', width = 300 } = props;
     
     const onChange = (value?: string) => {
         props.onChange && props.onChange(value);
@@ -58,24 +75,8 @@ function Editor(props: IProps) {
 
     const editorInstance = useMonaco();
 
-    const onHandleEditorMount = (editor: any) => {
-      actions.forEach((action) => {
-        editor.addAction({
-          id: action.id,
-          label: action.label,
-          contextMenuGroupId: 'actions',
-          contextMenuOrder: 1.5,
-          run: () => {
-            const model = editor.getModel();
-            const currentPosition = editor.getPosition() as any;
-            const text = action.id;
-            model?.applyEdits([{
-              range: new monaco.Range(currentPosition?.lineNumber, currentPosition.column, currentPosition.lineNumber, currentPosition?.column + text.length),
-              text
-            }])
-          }
-        })
-      });
+    const onHandleEditorMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
+      setupContextMenuFeature(editor);
     }
 
     /**
@@ -84,7 +85,6 @@ function Editor(props: IProps) {
     const onResize = useCallback(() => {
       window.requestAnimationFrame(() => {
         const { width = 0, height = 0 } = divRef.current?.getBoundingClientRect() || {};
-        
         editorInstance?.editor.getEditors()[0].layout({ width, height })
       })
     }, [editorInstance, divRef.current]);
@@ -93,8 +93,6 @@ function Editor(props: IProps) {
       if (!editorInstance) {
         return;
       }
-
-
       window.addEventListener('resize', onResize);
 
       return () => {
@@ -106,7 +104,7 @@ function Editor(props: IProps) {
         <div className='h-full w-full overflow-hidden' ref={divRef}>
             <MonocoEditor
                 height="100%"
-                // width={'100%'}
+                width={width}
                 defaultLanguage={language}
                 value={value}
                 theme="hcLight"
@@ -116,6 +114,17 @@ function Editor(props: IProps) {
                         enabled: false
                     },
                     renderLineHighlight: 'line',
+                    scrollbar: {
+                        alwaysConsumeMouseWheel: false,
+                        vertical: 'auto',
+                        verticalScrollbarSize: 5,
+                        horizontalScrollbarSize: 5
+                    },
+                    stickyScroll: {
+                        enabled: true,
+                        maxLineCount: 10000,
+                    },
+                    contextmenu: false
                     // automaticLayout: true,
                 }}
                 loading="加载中..."

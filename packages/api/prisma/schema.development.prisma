@@ -1,0 +1,154 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("POSTGRESQL_URL")
+}
+
+model User {
+  id                    Int           @id @default(autoincrement())
+  username              String
+  email                 String
+  password              String
+  statu                 Int           @default(1)
+  role                  Int           @default(0)
+  creator               User?         @relation("CreatorSelf", fields: [creatorId], references: [id])
+  creatorId             Int?
+  creatorUsers          User[]        @relation("CreatorSelf")
+  inviteUser            User?         @relation("inviteUserSelf", fields: [inviteUserId], references: [id])
+  inviteUserId          Int?
+  inviteUsers           User[]        @relation("inviteUserSelf")
+  projects              ProjectUser[]
+  documentLatestCreator Document[]    @relation("DocumentLatestCreator")
+  projectLatestCreator  Project[]     @relation("ProjectLatestCreator")
+  Document              Document[]
+  DocumentLog           DocumentLog[]
+  Schedule              Schedule[]
+  Project               Project[]
+  inviteCode            String?
+  stock                 Int?          @default(50)
+  avatar                String?
+  intro                 String?
+  wxid                  String?
+  phone                 String?
+}
+
+model ProjectUser {
+  id        Int     @id @default(autoincrement())
+  projectId Int
+  userId    Int
+  User      User    @relation(fields: [userId], references: [id])
+  Project   Project @relation(fields: [projectId], references: [id])
+}
+
+model Document {
+  id              Int           @id @default(autoincrement())
+  name            String
+  alias           String?
+  description     String?
+  creator         User?         @relation(fields: [creatorId], references: [id])
+  creatorId       Int?
+  latestCreator   User?         @relation("DocumentLatestCreator", fields: [latestCreatorId], references: [id])
+  latestCreatorId Int?
+  path            String
+  statu           Int           @default(1)
+  type            Int           @default(1)
+  schema          Schema?        @relation(fields: [schemaId], references: [id])
+  schemaId        Int?          @unique
+  project         Project       @relation(fields: [projectId], references: [id])
+  projectId       Int
+  method          Int?          @default(0)
+  statuCode       Int?          @default(200)
+  protocol        Int?          @default(1)
+  useTemplate     Int?          @default(2)
+  folderId        Int?
+  schedule        Schedule?     @relation(fields: [scheduleId], references: [id])
+  scheduleId      Int?          @unique
+  documentLog     DocumentLog[]
+  folder          Folder?       @relation(fields: [folderId], references: [id])
+  request         Request[]
+}
+
+model DocumentLog {
+  id         Int      @id @default(autoincrement())
+  type       Int
+  content    String?
+  operator   User     @relation(fields: [operatorId], references: [id])
+  operatorId Int
+  time       DateTime @default(now())
+  document   Document @relation(fields: [documentId], references: [id])
+  documentId Int
+}
+
+model Folder {
+  id        Int        @id @default(autoincrement())
+  name      String
+  project   Project    @relation(fields: [projectId], references: [id])
+  projectId Int
+  folder    Folder?    @relation("FolderSelf", fields: [folderId], references: [id])
+  folderId  Int?
+  folders   Folder[]   @relation("FolderSelf")
+  index     Int?       @default(0)
+  statu     Int?       @default(1)
+  documents Document[]
+}
+
+model Project {
+  id              Int           @id @default(autoincrement())
+  name            String
+  alias           String
+  description     String?
+  statu           Int?          @default(1)
+  creator         User?         @relation(fields: [creatorId], references: [id])
+  creatorId       Int?
+  latestCreator   User?         @relation("ProjectLatestCreator", fields: [latestCreatorId], references: [id])
+  latestCreatorId Int?
+  open            Int?          @default(0)
+  template        String?
+  webhook         String?
+  documents       Document[]
+  folders         Folder[]
+  users           ProjectUser[]
+}
+
+model Request {
+  id         Int      @id @default(autoincrement())
+  document   Document @relation(fields: [documentId], references: [id])
+  documentId Int
+  from       String
+  headers    String
+}
+
+model Schedule {
+  id        Int    @id @default(autoincrement())
+  times     Int    @default(1)
+  path      String
+  method    Int    @default(2)
+  gap       Int    @default(1000)
+  running   Int    @default(0)
+  creator   User?  @relation(fields: [creatorId], references: [id])
+  creatorId Int?
+  document  Document?
+}
+
+model Schema {
+  id      Int     @id @default(autoincrement())
+  name    String?
+  alias   String?
+  type    Int?     @default(0)
+  statu   Int?    @default(1)
+  content String?
+  document  Document?
+}
+
+model Setting {
+  id Int @id @default(autoincrement())
+}

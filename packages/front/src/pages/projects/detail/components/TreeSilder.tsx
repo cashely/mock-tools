@@ -11,6 +11,8 @@ import type { TTreeNode } from '../../../../index';
 import CreateFolderButton from './CreateFolderButton';
 import NewTreeInput from './NewTreeInput';
 import useStore from '../../../../store';
+import FolderTitle from './FolderTitle';
+import DocumentOnContextMenu from './DocumentOnContextMenu';
 
 
 interface IProps {
@@ -86,7 +88,7 @@ const TreeSilder: React.FC<IProps> = (props: IProps) => {
         setTimeout(() => {
             // 聚焦到文本框
             inputRef.current && inputRef.current.focus();
-        }, 300)
+        }, 500)
         
     }
 
@@ -142,19 +144,7 @@ const TreeSilder: React.FC<IProps> = (props: IProps) => {
          * 下面是文件夹内的渲染逻辑
          */
         if (item.children) {
-            return (
-                <div className='flex items-center justify-between hover:bg-[transparent]' key={item.key}>
-                    <span>{item.name}</span>
-                    <div className='align-right flex'>
-                        <span className='text-[16px] ml-2 text-gray-500' onClick={(e, ) => onHandleAddNewDocument(item, e)}>
-                            <AiOutlinePlusSquare />
-                        </span>
-                        {/* <span className='text-[14px] ml-2 text-gray-500'>
-                            <AiOutlineDelete />
-                        </span> */}
-                    </div>
-                </div>
-            )
+            return <FolderTitle item={item} onHandleAddNewDocument={onHandleAddNewDocument} />
         }
         /**
          * 下面是新建文档的渲染逻辑
@@ -251,38 +241,44 @@ const TreeSilder: React.FC<IProps> = (props: IProps) => {
                     </CreateFolderButton>
                 </div>
             </div>
-            <div className='flex-1 overflow-y-auto'>
-                <ConfigProvider
-                    theme={{
-                        components: {
-                            Tree: {
-                                nodeHoverBg: 'transparent'
+            <DocumentOnContextMenu
+                menus={[{
+                    key: '1',
+                    label: '新建文档2',
+                    onClick: (_, { domEvent }) => {
+                        onHandleAddNewDocument(selectedDcoument, domEvent);
+                    }
+                }]}
+            >
+                <div className='flex-1 overflow-y-auto'>
+                    <ConfigProvider
+                        theme={{
+                            components: {
+                                Tree: {
+                                    nodeHoverBg: 'transparent'
+                                }
                             }
-                        }
-                    }}
-                >
-                    <Tree.DirectoryTree
-                        // showIcon
-                        multiple
-                        // showLine
-                        defaultExpandAll
-                        selectable={false}
-                        treeData={searchResultData}
-                        titleRender={titleRender}
-                        // switcherIcon={<CaretDownOutlined />}
-                        rootClassName='project-tree'
-                        // rootStyle={{ width: '100%' }}
-                        fieldNames={{
-                            title: 'name',
-                            children: 'children',
-                            key: 'key'
                         }}
-                        expandedKeys={expandedKeys}
-                        autoExpandParent={autoExpandParent}
-                        onExpand={(keys) => setExpandedKeys(keys)}
-                    />
-                </ConfigProvider>
-            </div>
+                    >
+                        <Tree.DirectoryTree
+                            multiple
+                            defaultExpandAll
+                            selectable={false}
+                            treeData={searchResultData}
+                            titleRender={titleRender}
+                            rootClassName='project-tree'
+                            fieldNames={{
+                                title: 'name',
+                                children: 'children',
+                                key: 'key'
+                            }}
+                            expandedKeys={expandedKeys}
+                            autoExpandParent={autoExpandParent}
+                            onExpand={(keys) => setExpandedKeys(keys)}
+                        />
+                    </ConfigProvider>
+                </div>
+            </DocumentOnContextMenu>
         </div>
     )
 }

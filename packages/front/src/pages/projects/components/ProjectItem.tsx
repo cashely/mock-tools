@@ -1,8 +1,8 @@
-import { Button } from 'antd';
+import { Button, Space } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { message, Divider } from 'antd';
 import cs from 'classnames';
-import { DeleteOutlined, SettingOutlined } from '@ant-design/icons';
+import { DeleteOutlined, SettingOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import { AiOutlineUnlock, AiOutlineLock } from 'react-icons/ai';
 import useTheme from '../../../hooks/themeContext';
 import UploadButton from '../../../components/common/UploadButton';
@@ -11,6 +11,7 @@ import ProjectTemplate from './ProjectTemplate';
 import { deleteProjectApi, updateProjectApi } from '../api';
 import { formatDate } from '../../../utils';
 import React, { useState } from 'react';
+import ProjectTip from './ProjectTip';
 
 interface IProps {
     project: Record<string, any>;
@@ -52,18 +53,25 @@ function ProjectItem(props: IProps) {
     }
 
     return (
-        <div className={`border rounded cursor-pointer ${cs({'border': hover})}`} style={{ borderColor: hover ? theme.hover : undefined }} onMouseOver={() => setHover(true)} onMouseLeave={() => setHover(false)} onClick={() => onHandleProjectClick(project)}>
+        <div className={`border rounded ${cs({'border': hover})}`} style={{ borderColor: hover ? theme.hover : undefined }} onMouseOver={() => setHover(true)} onMouseLeave={() => setHover(false)}>
             <h2 className='border-b p-2 flex justify-between'>
                 {project.name}
-                <span className='text-gray-500'>
-                    {
-                        project.open === 1
-                        ?
-                        <AiOutlineUnlock />
-                        :
-                        <AiOutlineLock />
-                    }
-                </span>
+                <div className='flex items-center'>
+                    <Space size='small'>
+                        <ProjectTip
+                            projectAlias={project.alias}
+                        />
+                        <span className='text-gray-500'>
+                            {
+                                project.open === 1
+                                ?
+                                <AiOutlineUnlock />
+                                :
+                                <AiOutlineLock />
+                            }
+                        </span>
+                    </Space>
+                </div>
             </h2>
             <ul className='p-2 text-sm text-gray-400'>
                 <li>
@@ -108,7 +116,7 @@ function ProjectItem(props: IProps) {
                 <Divider type='vertical' />
                 <Button title="删除" icon={<DeleteOutlined/>} variant='link' color='danger' onClick={(e) => onHandleProjectDelete(project, e)} />
                 <Divider type='vertical' />
-                <Button color="primary" variant='link' className='text-sm'>进入项目</Button>
+                <Button color="primary" variant='link' className='text-sm' onClick={() => onHandleProjectClick(project)}>进入项目</Button>
             </div>
         </div>
     )

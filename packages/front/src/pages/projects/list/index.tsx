@@ -2,15 +2,17 @@ import { useEffect, useState } from 'react';
 import { Spin } from 'antd';
 import { getProjectsApi, getProjectDocCountApi } from '../api';
 import ProjectList from '../components/ProjectList';
+import useStore from '../../../store';
 
 function Project(): React.ReactNode {
-    const [projects, setProjects] = useState<any[]>([])
+    const closeLoading = useStore((state) => state.closeLoading);
+    const openLoading = useStore((state) => state.openLoading);
 
-    const [loading, setLoading] = useState(true);
+    const [projects, setProjects] = useState<any[]>([])
 
     const getProjects = async () => {
         try {
-            setLoading(true);
+            openLoading();
             const res = await getProjectsApi<{ [key: string]: any }[]>();
             if (res.code === 200) {
                 const documentsCount: any = await Promise.all(res.data.map(({ id }) => getProjectDocCountApi<any>(id)));
@@ -18,11 +20,12 @@ function Project(): React.ReactNode {
                     ...project,
                     count: documentsCount[index].data
                 }));
-                console.log(data)
                 setProjects(data)
             }
-            setLoading(false);
         } catch (error) {}
+        finally {
+            closeLoading();
+        }
     }
 
 
@@ -31,16 +34,7 @@ function Project(): React.ReactNode {
     }, [])
 
     return (
-        <>
-            {
-                loading ?
-                <div className='w-full h-full flex items-center justify-center'>
-                    <Spin />
-                </div>
-                :
-                <ProjectList data={projects} onOk={getProjects} />
-                }
-        </>
+        <ProjectList data={projects} onOk={getProjects} />
     )
 }
 

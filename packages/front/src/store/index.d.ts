@@ -1,4 +1,5 @@
 import { type RequestResult } from '../index.d';
+import { LoadingState, loadingActions } from './loadingSlice';
 
 export type Slice<T, U> = (
     set: (fn: (state: Store) => void) => void,
@@ -47,7 +48,9 @@ type Store =
     & FoldersState
     & FoldersActions
     & DocumentState
-    & DocumentActions;
+    & DocumentActions
+    & LoadingState
+    & loadingActions;
 
 export interface DocumentActions {
     updateSelectedDocument: (document: Record<string, any>) => void;

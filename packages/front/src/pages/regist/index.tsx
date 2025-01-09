@@ -5,10 +5,14 @@ import { useTranslation } from'react-i18next';
 import LocaleButton from '../../components/common/LocaleButton';
 import { formFieldValidator } from '../../utils';
 import { regiestApi } from './api';
+import useStore from '../../store';
 
 
 
 function Regist() {
+
+    const closeLoading = useStore((state) => state.closeLoading);
+    const openLoading = useStore((state) => state.openLoading);
 
     const [form] = Form.useForm();
 
@@ -36,6 +40,7 @@ function Regist() {
 
     const onSubmit = async () => {
         try {
+            openLoading();
             const values = await form.validateFields();
             const res = await regiestApi<any>(values);
             if (res.code === 200) {
@@ -43,11 +48,11 @@ function Regist() {
                 setTimeout(() => {
                     navigate('/login');
                 }, 3000);
-            } else {
-                messageHandle.error(res.message);
             }
         } catch (error) {
             console.log(error);
+        } finally {
+            closeLoading();
         }
     }
     return (

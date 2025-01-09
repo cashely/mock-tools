@@ -4,34 +4,47 @@ import { Splitter, Button } from 'antd';
 import { PlayCircleOutlined } from '@ant-design/icons';
 import JsonToTS from "json-to-ts";
 import "highlight.js/styles/rainbow.min.css"
+import useStore from "../../store";
 
 const CodeRender = (props: { selectedDocument: Record<any, any>}) => {
+
+    const closeLoading = useStore((state) => state.closeLoading);
+    const openLoading = useStore((state) => state.openLoading);
+
     const { selectedDocument } = props;
     const [code, setCode] = useState<any>({});
 
     const onFetchMock = async () => {
-        const result = await fetch(
-            // 拼接的规则: 后端访问host + /mock + /项目别名 + /文档路径
-            `${import.meta.env.VITE_API_BASE_URI}/mock/${selectedDocument.project.alias}/${selectedDocument.path}`,
-            {
-                method: (() => {
-                    switch (true) {
-                        case ['0', '1'].includes(selectedDocument.method):
-                            return 'GET';
-                        case selectedDocument.method === '2':
-                            return 'POST';
-                        case selectedDocument.method === '3':
-                            return 'PUT';
-                        case selectedDocument.method === '4':
-                            return 'DELETE';
-                        default:
-                            return 'GET';
-                    }
-                })(),
-            }
-        )
-        const data = await result.json();
-        setCode(data);
+        
+        try {
+            openLoading();
+            const result = await fetch(
+                // 拼接的规则: 后端访问host + /mock + /项目别名 + /文档路径
+                `${import.meta.env.VITE_API_BASE_URI}/mock/${selectedDocument.project.alias}/${selectedDocument.path}`,
+                {
+                    method: (() => {
+                        switch (true) {
+                            case [0, 1].includes(selectedDocument.method):
+                                return 'GET';
+                            case selectedDocument.method === 2:
+                                return 'POST';
+                            case selectedDocument.method === 3:
+                                return 'PUT';
+                            case selectedDocument.method === 4:
+                                return 'DELETE';
+                            default:
+                                return 'GET';
+                        }
+                    })(),
+                }
+            )
+            const data = await result.json();
+            setCode(data);
+        } catch (error) {
+            console.warn(error, '无法解析结果')
+        } finally {
+            closeLoading();
+        }
     }
 
     return (
