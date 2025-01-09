@@ -1,6 +1,14 @@
 {
     "name": "mock-tools",
     "description": "Tools for mocking data",
+    "author": {
+        "name": "cahsely.shi",
+        "email": "290119516@qq.com"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/cashely/mock-tools.git"
+    },
     "version": "0.0.1",
     "workspaces": [
         "packages/*"
@@ -8,6 +16,11 @@
     "private": true,
     "scripts": {
         "dev": "pnpm --filter @mock-tools/front dev",
+        "api": "pnpm --filter @mock-tools/api dev",
         "build": "pnpm --filter @mock-tools/front build"
+    },
+    "engines": {
+        "node": ">=20.18.0",
+        "pnpm": ">=8.15.4"
     }
 }
